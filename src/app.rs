@@ -2,6 +2,8 @@
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct TemplateApp {
+    input: String,
+    output: String,
     // Example stuff:
     label: String,
 
@@ -15,6 +17,8 @@ impl Default for TemplateApp {
             // Example stuff:
             label: "Hello World!".to_owned(),
             value: 2.7,
+            input: String::new(),
+            output: String::new(),
         }
     }
 }
@@ -43,6 +47,7 @@ impl eframe::App for TemplateApp {
 
     /// Called each time the UI needs repainting, which may be many times per second.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        self.output = parse_input(&self.input);
         // Put your widgets into a `SidePanel`, `TopBottomPanel`, `CentralPanel`, `Window` or `Area`.
         // For inspiration and more examples, go to https://emilk.github.io/egui
 
@@ -80,6 +85,12 @@ impl eframe::App for TemplateApp {
             }
 
             ui.separator();
+            egui::scroll_area::ScrollArea::vertical().show(ui, |ui| {
+                ui.text_edit_multiline(&mut self.input);
+                ui.separator();
+                ui.text_edit_multiline(&mut self.output);
+            });
+            ui.separator();
 
             ui.add(egui::github_link_file!(
                 "https://github.com/emilk/eframe_template/blob/master/",
@@ -92,6 +103,28 @@ impl eframe::App for TemplateApp {
             });
         });
     }
+}
+
+fn parse_input(input: &str) -> String {
+    let mut output_lines = vec![];
+    for line in input.lines() {
+        let mut transposed_line = line.to_string();
+        for word_or_chord in line.split_whitespace() {
+            log::debug!("Current word [{}]", word_or_chord);
+            let f = rust_music_theory::chord::Chord::from_regex(word_or_chord);
+            if let Ok(chord) = f {
+                log::debug!(
+                    "Successfully parsed chord {} to {:?}",
+                    word_or_chord,
+                    &chord.to_string()
+                );
+                transposed_line = transposed_line.replace(word_or_chord, &chord.to_string());
+                // transposed_line = g;
+            }
+        }
+        output_lines.push(transposed_line.clone());
+    }
+    output_lines.join("\n")
 }
 
 fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {

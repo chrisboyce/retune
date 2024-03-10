@@ -7,6 +7,8 @@ rust-version = "1.72"
 
 
 [dependencies]
+# rust-music-theory = {path="/home/cboyce/repos/rust-music-theory"}
+rust-music-theory = {git="https://github.com/chrisboyce/rust-music-theory.git", branch="dev"}
 egui = "0.26.0"
 eframe = { version = "0.26.0", default-features = false, features = [
     "accesskit",     # Make egui comptaible with screen readers. NOTE: adds a lot of dependencies.
